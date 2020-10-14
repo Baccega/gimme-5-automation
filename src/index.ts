@@ -9,7 +9,7 @@ const TELEGRAM_DOMAIN = 'https://api.telegram.org/'
 
 function createTelegramAPI() {
   return (endpoint: string, ...args: string[]) => {
-    const params = [`chat_id=${process.env.TELEGRAM_USER_ID}`, ...args]
+    const params = [`chat_id=${process.env.TELEGRAM_USER_ID}`, `parse_mode=HTML`, ...args]
     const rawUrl = `${TELEGRAM_DOMAIN}bot${process.env.TELEGRAM_TOKEN}/${endpoint}?${params.join('&')}`
     return fetch(encodeURI(rawUrl))
   }
@@ -79,30 +79,38 @@ async function statusFunds(API: any, contracts: any) {
 function createMessage(totalBalance: any, totalSavings: any, contracts: any, funds: any) {
   const totalProfit = (totalBalance - totalSavings).toFixed(2)
 
+  const balanceIcon = '💰'
+  const savingsIcon = '🐖'
+  const totalProfitIcon = Number(totalProfit) > 0 ? '💵' : '💸'
+
   const contractText = ({ id, productName, lastContractValue, savings }: any) => {
     const { dailyVariation } = funds.find((cur: any) => cur.id === id)
     const profit = (lastContractValue - savings).toFixed(2)
-    const dailyVariationSign = Number(dailyVariation) > 0 ? '+' : '-'
+
+    const profitIcon = Number(profit) > 0 ? '💵' : '💸'
+    const dailyVariationIcon = Number(dailyVariation) > 0 ? '📈' : '📉'
 
     const rows = [
-      `${productName}`,
-      `BALANCE: ${lastContractValue}€`,
-      `PROFIT: ${profit}€`,
-      `DAILY_VARIATION: ${dailyVariationSign}${dailyVariation}%`,
+      `<i>${productName}</i>`,
+      `${balanceIcon}  <b>${lastContractValue}€</b>`,
+      `${profitIcon}  ${profit}€`,
+      `${dailyVariationIcon}  ${dailyVariation}%`,
     ]
     return rows.join('\n')
   }
 
   const rows = [
-    `TOTALBALANCE:  ${totalBalance}€`,
-    `TOTALSAVINGS: ${totalSavings}€`,
-    `PROFIT: ${totalProfit}€`,
-    `---------------------`,
-    `CONTRACTS:`,
+    `🟠 <b>GIMMIE 5</b>`,
+    ``,
+    `${balanceIcon}  <b>${totalBalance}€</b>`,
+    `${savingsIcon}  ${totalSavings}€`,
+    `${totalProfitIcon}  ${totalProfit}€`,
     ``,
     `${contracts.map(contractText).join('\n\n')}`,
   ]
-  return rows.join('\n')
+
+  const formattedRows = rows.map((cur) => cur.replace(/\./g, ','))
+  return formattedRows.join('\n')
 }
 
 async function sendTelegram(message: string) {
