@@ -22,8 +22,8 @@ async function login() {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: urlEncode({
-      userid: process.env.GIMMI_5_USERNAME,
-      password: process.env.GIMMI_5_PASSWORD,
+      userid: process.env.GIMME_5_USERNAME,
+      password: process.env.GIMME_5_PASSWORD,
       appName: 'G5APIWebV3',
       hidden: '',
     }),
@@ -100,7 +100,7 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
   }
 
   const rows = [
-    `🟠 <b>GIMMIE 5</b>`,
+    `🟠 <b>GIMME 5</b>`,
     ``,
     `${balanceIcon}  <b>${totalBalance}€</b>`,
     `${savingsIcon}  ${totalSavings}€`,
@@ -123,6 +123,28 @@ async function main() {
   const { totalBalance, totalSavings } = await statusGlobal(API)
   const { contracts } = await statusContracts(API)
   const { funds } = await statusFunds(API, contracts)
+  // const totalBalance = 1257.0
+  // const totalSavings = 123123.0
+  // const contracts = [
+  //   {
+  //     id: 426217,
+  //     lastContractValue: 1159.69,
+  //     savings: 1150,
+  //     productId: 'B2',
+  //     productName: 'ACOMEA BREVE TERMINE',
+  //   },
+  //   {
+  //     id: 446937,
+  //     lastContractValue: 97.58,
+  //     savings: 100,
+  //     productId: 'R2',
+  //     productName: 'ACOMEA PERFORMANCE',
+  //   },
+  // ]
+  // const funds = [
+  //   { id: 426217, dailyVariation: '0.04' },
+  //   { id: 446937, dailyVariation: '-0.05' },
+  // ]
 
   const message = createMessage(totalBalance, totalSavings, contracts, funds)
 
