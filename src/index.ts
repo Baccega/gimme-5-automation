@@ -90,11 +90,19 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
     const profitIcon = Number(profit) > 0 ? '💵' : '💸'
     const dailyVariationIcon = Number(dailyVariation) > 0 ? '📈' : '📉'
 
+    const exclamationPointsNumber = Math.round(Math.abs(Number(dailyVariation)) * 10)
+    const exclamationPoints =
+      exclamationPointsNumber === 0
+        ? ''
+        : exclamationPointsNumber === 1
+        ? '❗️'
+        : '‼️'.repeat(exclamationPointsNumber / 2)
+
     const rows = [
       `<i>${productName}</i>`,
       `${balanceIcon}  <b>${lastContractValue}€</b>`,
       `${profitIcon}  ${profit}€`,
-      `${dailyVariationIcon}  ${dailyVariation}%`,
+      `${dailyVariationIcon}  ${dailyVariation}% ${exclamationPoints}`,
     ]
     return rows.join('\n')
   }
@@ -142,8 +150,8 @@ async function main() {
   //   },
   // ]
   // const funds = [
-  //   { id: 426217, dailyVariation: '0.04' },
-  //   { id: 446937, dailyVariation: '-0.05' },
+  //   { id: 426217, dailyVariation: '0.05' },
+  //   { id: 446937, dailyVariation: '-0.35' },
   // ]
 
   const message = createMessage(totalBalance, totalSavings, contracts, funds)
