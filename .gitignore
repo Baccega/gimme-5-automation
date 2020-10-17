@@ -12,3 +12,6 @@ node_modules
 # Keys
 key.rsa
 key.rsa.pub
+
+# Storage from `node-persist`
+storage

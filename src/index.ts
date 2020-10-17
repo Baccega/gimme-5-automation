@@ -1,9 +1,25 @@
 import * as dotenv from 'dotenv'
+import storage from 'node-persist'
 import { sendTelegramMessage } from './Telegram'
 import { login, statusContracts, statusFunds, statusGlobal } from './Api'
 
 dotenv.config()
 
+async function saveHistory(contracts: any) {
+  await Promise.all(
+    contracts.map(({ id, lastContractValue, savings }: any) =>
+      storage.setItem(`${id}#lastProfit`, Number((lastContractValue - savings).toFixed(2)))
+    )
+  )
+}
+
+function getHistory(contracts: any) {
+  return Promise.all(
+    contracts.map(async ({ id }: any) => ({ id, lastProfit: (await storage.getItem(`${id}#lastProfit`)) ?? 0 }))
+  )
+}
+
+function createMessage(totalBalance: any, totalSavings: any, contracts: any, funds: any, history: any) {
   const devWarning = process.env.NODE_ENV === 'development' ? '⚠️  DEV ⚠️  ' : ''
 
   const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
@@ -14,7 +30,9 @@ dotenv.config()
 
   const contractText = ({ id, productName, lastContractValue, savings }: any) => {
     const { dailyVariation } = funds.find((cur: any) => cur.id === id)
+    const { lastProfit } = history.find((cur: any) => cur.id === id)
     const profit = Number((lastContractValue - savings).toFixed(2))
+    const dailyProfitVariation = Number((profit - lastProfit).toFixed(2))
 
     const profitIcon = profit > 0 ? '💵' : '💸'
     const dailyVariationIcon = dailyVariation > 0 ? '📈' : '📉'
@@ -34,7 +52,7 @@ dotenv.config()
       `<i>${productName}</i>`,
       `${balanceIcon}  <b>${lastContractValue}€</b>`,
       `${profitIcon}  ${profit}€`,
-      `${dailyVariationIcon}  ${dailyVariation}% ${reaction}`,
+      `${dailyVariationIcon}  ${dailyProfitVariation}€ (${dailyVariation}%) ${reaction}`,
     ]
     return rows.join('\n')
   }
@@ -54,6 +72,8 @@ dotenv.config()
 }
 
 async function main() {
+  await storage.init({ dir: './storage' })
+
   const { API } = await login()
   const { totalBalance, totalSavings } = await statusGlobal(API)
   const { contracts } = await statusContracts(API)
@@ -81,9 +101,13 @@ async function main() {
   //   { id: 446937, dailyVariation: '-0.35' },
   // ]
 
-  const message = createMessage(totalBalance, totalSavings, contracts, funds)
+  const history = await getHistory(contracts)
+
+  const message = createMessage(totalBalance, totalSavings, contracts, funds, history)
 
   await sendTelegramMessage(message)
+
+  await saveHistory(contracts)
 
   console.log(message)
   console.log('ALL DONE!')
