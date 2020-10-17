@@ -87,22 +87,22 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
     const { dailyVariation } = funds.find((cur: any) => cur.id === id)
     const profit = (lastContractValue - savings).toFixed(2)
 
-    const profitIcon = Number(profit) > 0 ? '💵' : '💸'
-    const dailyVariationIcon = Number(dailyVariation) > 0 ? '📈' : '📉'
+    const singleReactionEmoji = dailyVariation > 0 ? '🎉' : '❗️'
+    const multiReactionEmoji = dailyVariation > 0 ? '🎊' : '‼️'
 
-    const exclamationPointsNumber = Math.round(Math.abs(Number(dailyVariation)) * 10)
-    const exclamationPoints =
-      exclamationPointsNumber === 0
+    const reactionNumber = Math.round(Math.abs(dailyVariation) * 10)
+    const reaction =
+      reactionNumber === 0
         ? ''
-        : exclamationPointsNumber === 1
-        ? '❗️'
-        : '‼️'.repeat(exclamationPointsNumber / 2)
+        : reactionNumber === 1
+        ? singleReactionEmoji
+        : multiReactionEmoji.repeat(reactionNumber / 2)
 
     const rows = [
       `<i>${productName}</i>`,
       `${balanceIcon}  <b>${lastContractValue}€</b>`,
       `${profitIcon}  ${profit}€`,
-      `${dailyVariationIcon}  ${dailyVariation}% ${exclamationPoints}`,
+      `${dailyVariationIcon}  ${dailyVariation}% ${reaction}`,
     ]
     return rows.join('\n')
   }
