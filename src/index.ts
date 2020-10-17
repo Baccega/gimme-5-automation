@@ -4,7 +4,8 @@ import { login, statusContracts, statusFunds, statusGlobal } from './Api'
 
 dotenv.config()
 
-function createMessage(totalBalance: any, totalSavings: any, contracts: any, funds: any) {
+  const devWarning = process.env.NODE_ENV === 'development' ? '⚠️  DEV ⚠️  ' : ''
+
   const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
 
   const balanceIcon = '💰'
@@ -39,7 +40,7 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
   }
 
   const rows = [
-    `🟠 <b>GIMME 5</b>`,
+    `${devWarning}🟠 <b>GIMME 5</b>`,
     ``,
     `${balanceIcon}  <b>${totalBalance}€</b>`,
     `${savingsIcon}  ${totalSavings}€`,

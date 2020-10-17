@@ -1,11 +1,11 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      // NODE_ENV?: 'development' | 'production';
-      GIMME_5_USERNAME: string;
-      GIMME_5_PASSWORD: string;
-      TELEGRAM_TOKEN: string;
-      TELEGRAM_USER_ID: string;
+      NODE_ENV: 'development' | 'production'
+      GIMME_5_USERNAME: string
+      GIMME_5_PASSWORD: string
+      TELEGRAM_TOKEN: string
+      TELEGRAM_USER_ID: string
     }
   }
 }
