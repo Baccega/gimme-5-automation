@@ -1,39 +1,21 @@
 import * as dotenv from 'dotenv'
 import storage from 'node-persist'
 import { sendTelegramMessage } from './Telegram'
-import { login, statusContracts, statusFunds, statusGlobal } from './Api'
+import { fetchGimme5Data } from './Api'
+import { History } from 'History'
+import { ContractData, Gimme5Data } from 'Gimme5'
 
 dotenv.config()
 
-async function saveHistory(contracts: any) {
-  await Promise.all(
-    contracts.map(({ id, lastContractValue, savings }: any) =>
-      storage.setItem(`${id}#lastProfit`, Number((lastContractValue - savings).toFixed(2)))
-    )
-  )
-}
-
-function getHistory(contracts: any) {
-  return Promise.all(
-    contracts.map(async ({ id }: any) => ({ id, lastProfit: (await storage.getItem(`${id}#lastProfit`)) ?? 0 }))
-  )
-}
-
-function createMessage(totalBalance: any, totalSavings: any, contracts: any, funds: any, history: any) {
-  const devWarning = process.env.NODE_ENV === 'development' ? '⚠️  DEV ⚠️  ' : ''
-
-  const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
-
+function createMessage({ totalBalance, totalSavings, totalProfit, dailyTotalProfit, contracts }: Gimme5Data) {
+  const devWarning = process.env.NODE_ENV === 'development' ? '⚠️ DEV  ' : ''
   const balanceIcon = '💰'
   const savingsIcon = '🐖'
   const totalProfitIcon = totalProfit > 0 ? '💵' : '💸'
+  const totalDailyProfitIcon = dailyTotalProfit > 0 ? '📈' : '📉'
+  const totalDailyProfitReaction = dailyTotalProfit > 0 ? '🎉' : '❗'
 
-  const contractText = ({ id, productName, lastContractValue, savings }: any) => {
-    const { dailyVariation } = funds.find((cur: any) => cur.id === id)
-    const { lastProfit } = history.find((cur: any) => cur.id === id)
-    const profit = Number((lastContractValue - savings).toFixed(2))
-    const dailyProfitVariation = Number((profit - lastProfit).toFixed(2))
-
+  const contractText = ({ id, name, balance, profit, dailyVariation, dailyProfitVariation }: ContractData) => {
     const profitIcon = profit > 0 ? '💵' : '💸'
     const dailyVariationIcon = dailyVariation > 0 ? '📈' : '📉'
 
@@ -49,10 +31,10 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
         : multiReactionEmoji.repeat(reactionNumber / 2)
 
     const rows = [
-      `<i>${productName}</i>`,
-      `${balanceIcon}  <b>${lastContractValue}€</b>`,
+      `<i>${name}</i>`,
+      `${balanceIcon}  <b>${balance}€</b>`,
       `${profitIcon}  ${profit}€`,
-      `${dailyVariationIcon}  ${dailyProfitVariation}€ (${dailyVariation}%) ${reaction}`,
+      `${dailyVariationIcon}  ${dailyProfitVariation}€ (${dailyVariation}%)  ${reaction}`,
     ]
     return rows.join('\n')
   }
@@ -63,6 +45,7 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
     `${balanceIcon}  <b>${totalBalance}€</b>`,
     `${savingsIcon}  ${totalSavings}€`,
     `${totalProfitIcon}  ${totalProfit}€`,
+    `${totalDailyProfitIcon}  ${dailyTotalProfit}€  ${totalDailyProfitReaction}`,
     ``,
     `${contracts.map(contractText).join('\n\n')}`,
   ]
@@ -74,40 +57,36 @@ function createMessage(totalBalance: any, totalSavings: any, contracts: any, fun
 async function main() {
   await storage.init({ dir: './storage' })
 
-  const { API } = await login()
-  const { totalBalance, totalSavings } = await statusGlobal(API)
-  const { contracts } = await statusContracts(API)
-  const { funds } = await statusFunds(API, contracts)
-  // const totalBalance = 1257.0
-  // const totalSavings = 1233.0
-  // const contracts = [
-  //   {
-  //     id: 426217,
-  //     lastContractValue: 1159.69,
-  //     savings: 1150,
-  //     productId: 'B2',
-  //     productName: 'ACOMEA BREVE TERMINE',
-  //   },
-  //   {
-  //     id: 446937,
-  //     lastContractValue: 97.58,
-  //     savings: 100,
-  //     productId: 'R2',
-  //     productName: 'ACOMEA PERFORMANCE',
-  //   },
-  // ]
-  // const funds = [
-  //   { id: 426217, dailyVariation: '0.15' },
-  //   { id: 446937, dailyVariation: '-0.35' },
-  // ]
+  const data: Gimme5Data = await fetchGimme5Data()
 
-  const history = await getHistory(contracts)
+  // const data: Gimme5Data = {
+  //   totalBalance: 1604.21,
+  //   totalSavings: 1600,
+  //   totalProfit: 4.21,
+  //   dailyTotalProfit: 5.79,
+  //   contracts: [
+  //     {
+  //       id: '426217',
+  //       name: 'ACOMEA BREVE TERMINE',
+  //       balance: 1456.92,
+  //       profit: 6.92,
+  //       dailyVariation: 0.13,
+  //       dailyProfitVariation: -2.77,
+  //     },
+  //     {
+  //       id: '446937',
+  //       name: 'ACOMEA PERFORMANCE',
+  //       balance: 147.29,
+  //       profit: -2.71,
+  //       dailyVariation: 0.21,
+  //       dailyProfitVariation: -0.29,
+  //     },
+  //   ],
+  // }
 
-  const message = createMessage(totalBalance, totalSavings, contracts, funds, history)
+  const message = createMessage(data)
 
   await sendTelegramMessage(message)
-
-  await saveHistory(contracts)
 
   console.log(message)
   console.log('ALL DONE!')

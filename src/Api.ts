@@ -1,7 +1,51 @@
+import { Gimme5Data } from 'Gimme5'
 import fetch from 'node-fetch'
+import { getHistory, saveHistory } from './History'
+import { ContractData } from './types/Gimme5'
 import { urlEncode } from './utils'
 
 const API_DOMAIN = 'https://5gimme5.acomea.it/api'
+
+export async function fetchGimme5Data(): Promise<Gimme5Data> {
+  const { API } = await login()
+  const { totalBalance, totalSavings } = await statusGlobal(API)
+  const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
+
+  const { contracts } = await statusContracts(API)
+  const { funds } = await statusFunds(API, contracts)
+
+  const history = await getHistory(contracts)
+
+  const contractsData: ContractData[] = contracts.map(({ id, productName, lastContractValue, savings }) => {
+    const fundsData: any = funds.find((cur: any) => cur.id === id)
+    const dailyVariation = Number(fundsData.dailyVariation)
+
+    const contractHistory = history.contracts.find((cur: any) => cur.id === id)
+    const lastProfit = Number(contractHistory?.lastProfit)
+
+    const profit = Number((lastContractValue - savings).toFixed(2))
+    const dailyProfitVariation = Number((profit - lastProfit).toFixed(2))
+
+    return {
+      id,
+      name: productName,
+      balance: lastContractValue,
+      profit,
+      dailyVariation,
+      dailyProfitVariation,
+    }
+  })
+
+  await saveHistory(totalProfit, contracts)
+
+  return {
+    totalBalance,
+    totalSavings,
+    totalProfit,
+    dailyTotalProfit: Number((totalProfit - Number(history.lastProfit)).toFixed(2)),
+    contracts: contractsData,
+  }
+}
 
 export async function login() {
   const rawResponse = await fetch(`${API_DOMAIN}/login.json`, {
