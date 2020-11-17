@@ -15,3 +15,6 @@ key.rsa.pub
 
 # Storage from `node-persist`
 storage
+
+# Logs from crontab
+logs
