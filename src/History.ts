@@ -4,8 +4,8 @@ import storage from 'node-persist'
 export async function saveHistory(lastProfit: any, contracts: any) {
   await Promise.all([
     storage.setItem(`lastProfit`, lastProfit),
-    ...contracts.map(({ id, lastContractValue, savings }: any) =>
-      storage.setItem(`${id}#lastProfit`, Number((lastContractValue - savings).toFixed(2)))
+    ...contracts.map(({ id, lastContractValue, savings, refunds }: any) =>
+      storage.setItem(`${id}#lastProfit`, Number((lastContractValue - savings + refunds).toFixed(2)))
     ),
   ])
 }
