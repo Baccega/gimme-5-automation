@@ -60,36 +60,40 @@ async function main() {
   const data: Gimme5Data = await fetchGimme5Data()
 
   // const data: Gimme5Data = {
-  //   totalBalance: 1604.21,
-  //   totalSavings: 1600,
-  //   totalProfit: 4.21,
-  //   dailyTotalProfit: 5.79,
-  //   contracts: [
-  //     {
-  //       id: '426217',
-  //       name: 'ACOMEA BREVE TERMINE',
-  //       balance: 1456.92,
-  //       profit: 6.92,
-  //       dailyVariation: 0.13,
-  //       dailyProfitVariation: -2.77,
-  //     },
-  //     {
-  //       id: '446937',
-  //       name: 'ACOMEA PERFORMANCE',
-  //       balance: 147.29,
-  //       profit: -2.71,
-  //       dailyVariation: 0.21,
-  //       dailyProfitVariation: -0.29,
-  //     },
-  //   ],
+  // totalBalance: '3191.98',
+  // totalSavings: 3288.96,
+  // totalProfit: 103.02,
+  // dailyTotalProfit: 0,
+  // contracts: [
+  //   {
+  //     id: 426217,
+  //     name: 'ACOMEA BREVE TERMINE',
+  //     balance: 2680.14,
+  //     profit: 90.14,
+  //     dailyVariation: 0.08,
+  //     dailyProfitVariation: 0
+  //   },
+  //   {
+  //     id: 446937,
+  //     name: 'ACOMEA PERFORMANCE',
+  //     balance: 511.84,
+  //     profit: 12.88,
+  //     dailyVariation: 0.4,
+  //     dailyProfitVariation: 0
+  //   }
+  // ]
   // }
 
-  const message = createMessage(data)
+  if (data.dailyTotalProfit !== 0) {
+    const message = createMessage(data)
 
-  await sendTelegramMessage(message)
+    await sendTelegramMessage(message)
 
-  console.log(message)
-  console.log('ALL DONE!')
+    console.log(message)
+    console.log('ALL DONE!')
+  } else {
+    console.log('Skipped')
+  }
 }
 
 main()
