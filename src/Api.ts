@@ -5,14 +5,33 @@ import { ContractData } from './types/Gimme5'
 import { urlEncode } from './utils'
 
 const API_DOMAIN = 'https://5gimme5.acomea.it/api'
+const TRANSACTIONS_SWITCH_OUT = 'SWITCH_OUT'
+const TRANSACTIONS_SWITCH_IN = 'SWITCH_IN_INVESTITO'
+const TRANSACTIONS_TAX = 'IMPOSTA_BOLLO'
 
 export async function fetchGimme5Data(): Promise<Gimme5Data> {
   const { API } = await login()
-  const { totalBalance, totalSavings, totalRefunds } = await statusGlobal(API)
-  const totalProfit = Number((totalBalance - totalSavings + totalRefunds).toFixed(2))
+  const { totalBalance, totalRefunds } = await statusGlobal(API)
+  const totalSavings = totalBalance - totalRefunds
+  const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
 
   const { contracts } = await statusContracts(API)
   const { funds } = await statusFunds(API, contracts)
+  const { transactions } = await statusTransactions(API, contracts)
+
+  const totalCosts = transactions
+    .reduce((acc: number, cur: any) => {
+      switch (cur.type) {
+        case TRANSACTIONS_SWITCH_OUT:
+        case TRANSACTIONS_TAX:
+          return acc + Number(cur.amount)
+        case TRANSACTIONS_SWITCH_IN:
+          return acc - Number(cur.amount)
+        default:
+          return acc
+      }
+    }, 0)
+    .toFixed(2)
 
   const history = await getHistory(contracts)
 
@@ -42,6 +61,7 @@ export async function fetchGimme5Data(): Promise<Gimme5Data> {
     totalBalance,
     totalSavings,
     totalProfit,
+    totalCosts,
     dailyTotalProfit: Number((totalProfit - Number(history.lastProfit)).toFixed(2)),
     contracts: contractsData,
   }
@@ -74,8 +94,8 @@ export async function statusGlobal(API: any) {
   const rawResponse = await API('status.json')
   const response = await rawResponse.json()
 
-  const { totalBalance, totalSavings, totalRefunds } = response
-  return { totalBalance: totalBalance.toFixed(2), totalSavings, totalRefunds }
+  const { totalBalance, totalRefunds } = response
+  return { totalBalance: totalBalance.toFixed(2), totalRefunds }
 }
 
 export async function statusContracts(API: any) {
@@ -114,4 +134,15 @@ export async function statusFunds(API: any, contracts: any) {
   )
 
   return { funds }
+}
+export async function statusTransactions(API: any, contracts: any) {
+  const transactions: any = await Promise.all(
+    contracts.map(async (contract: any) => {
+      const rawResponse = await API(`transactions.json`, `contractId=${contract.id}`)
+      const response = await rawResponse.json()
+      return response.elements
+    })
+  )
+
+  return { transactions: transactions.flat() }
 }

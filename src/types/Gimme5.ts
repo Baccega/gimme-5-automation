@@ -2,6 +2,7 @@ export type Gimme5Data = {
   totalBalance: number
   totalSavings: number
   totalProfit: number
+  totalCosts: number
   dailyTotalProfit: number
   contracts: ContractData[]
 }
