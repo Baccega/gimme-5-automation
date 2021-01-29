@@ -1,6 +1,7 @@
 export type Gimme5Data = {
   totalBalance: number
   totalSavings: number
+  realSavings: number
   totalProfit: number
   totalCosts: number
   dailyTotalProfit: number

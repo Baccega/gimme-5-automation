@@ -11,9 +11,9 @@ const TRANSACTIONS_TAX = 'IMPOSTA_BOLLO'
 
 export async function fetchGimme5Data(): Promise<Gimme5Data> {
   const { API } = await login()
-  const { totalBalance, totalRefunds } = await statusGlobal(API)
-  const totalSavings = totalBalance - totalRefunds
-  const totalProfit = Number((totalBalance - totalSavings).toFixed(2))
+  const { totalBalance, totalRefunds, totalSavings } = await statusGlobal(API)
+  const realSavings = Number((totalBalance - totalRefunds).toFixed(2))
+  const totalProfit = Number((totalBalance - realSavings).toFixed(2))
 
   const { contracts } = await statusContracts(API)
   const { funds } = await statusFunds(API, contracts)
@@ -60,6 +60,7 @@ export async function fetchGimme5Data(): Promise<Gimme5Data> {
   return {
     totalBalance,
     totalSavings,
+    realSavings,
     totalProfit,
     totalCosts,
     dailyTotalProfit: Number((totalProfit - Number(history.lastProfit)).toFixed(2)),
@@ -94,8 +95,8 @@ export async function statusGlobal(API: any) {
   const rawResponse = await API('status.json')
   const response = await rawResponse.json()
 
-  const { totalBalance, totalRefunds } = response
-  return { totalBalance: totalBalance.toFixed(2), totalRefunds }
+  const { totalBalance, totalRefunds, totalSavings } = response
+  return { totalBalance: totalBalance.toFixed(2), totalSavings: totalSavings.toFixed(2), totalRefunds }
 }
 
 export async function statusContracts(API: any) {
