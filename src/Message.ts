@@ -16,7 +16,6 @@ const SAD_2_ICON = '‼️'
 export function createMessage({
   totalBalance,
   totalSavings,
-  realSavings,
   totalCosts,
   totalProfit,
   dailyTotalProfit,
@@ -56,7 +55,7 @@ export function createMessage({
     `${devWarning}🟠 <b>GIMME 5</b>`,
     ``,
     `${BALANCE_ICON}  <b>${totalBalance}€</b>`,
-    `${SAVINGS_ICON}  ${realSavings}€`,
+    `${SAVINGS_ICON}  ${totalSavings}€`,
     `${COSTS_ICON}  ${totalCosts}€`,
     `${totalProfitIcon}  ${totalProfit}€`,
     `${totalDailyProfitIcon}  ${dailyTotalProfit}€  ${totalDailyProfitReaction}`,
