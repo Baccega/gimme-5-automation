@@ -138,9 +138,17 @@ export async function statusFunds(API: any, contracts: any) {
 export async function statusTransactions(API: any, contracts: any) {
   const transactions: any = await Promise.all(
     contracts.map(async (contract: any) => {
-      const rawResponse = await API(`transactions.json`, `contractId=${contract.id}`)
-      const response = await rawResponse.json()
-      return response.elements
+      let out: any = []
+      let index = 0
+      let flag
+      do {
+        const rawResponse = await API(`transactions.json`, `contractId=${contract.id}`, `firstResult=${index}`)
+        const response = await rawResponse.json()
+        index += response.numberOfElements
+        out = [...out, ...response.elements]
+        flag = response.elements.length > 0
+      } while (flag)
+      return out
     })
   )
 
