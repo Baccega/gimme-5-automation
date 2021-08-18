@@ -1,12 +1,13 @@
 {
-  "name": "gimme-5-bot",
+  "name": "gimme-5-automation",
   "version": "1.0.0",
   "description": "An automation for the Gimme 5 app using a telegram bot",
   "main": "index.ts",
   "author": "Sandro Baccega",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "build-docker": "docker build -t gimme-5-automation ."
   },
   "prettier": {
     "semi": false,
