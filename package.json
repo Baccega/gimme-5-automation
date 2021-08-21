@@ -1,6 +1,6 @@
 {
   "name": "gimme-5-automation",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "An automation for the Gimme 5 app using a telegram bot",
   "main": "index.ts",
   "author": "Sandro Baccega",
